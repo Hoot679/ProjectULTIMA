@@ -1,7 +1,7 @@
 <?php
 require_once('inc/connect.php');
 requireAuth();
-$stmt = $db->prepare('SELECT email, yeah_notifications FROM users WHERE id = ?');
+$stmt = $db->prepare('SELECT email, yeah_notifications, show_all_posts, message_prefs FROM users WHERE id = ?');
 $stmt->bind_param('i', $_SESSION['id']);
 $stmt->execute();
 if($stmt->error) {
@@ -37,6 +37,16 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if(!in_array($value, ['0', '1'])) {
                         showJSONError(400, 1337121, 'Your Yeah notification setting is invalid.');
                     }
+                    break;
+                case 'show_all_posts':
+                    if(!in_array($value, ['0', '1'])) {
+                        showJSONError(400, 1337122, 'Your show all posts setting is invalid.');
+                    }
+                    break;
+                case 'message_prefs':
+                    if(!in_array($value, ['0', '1', '2'])) {
+                        showJSONError(400, 1337123, 'Your message preferences setting is invalid.');
+                    }
             }
             $edits[] = $key . ' = "' . $db->real_escape_string($value) . '"';
         }
@@ -70,6 +80,29 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <select name="yeah_notifications">
                                     <option value="1"<?=$row['yeah_notifications'] === 1 ? ' selected' : ''?>>Receive</option>
                                     <option value="0"<?=$row['yeah_notifications'] === 0 ? ' selected' : ''?>>Don't Receive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <p class="settings-label">Do you want every single MVWorld post to show up in your feed?</p>
+                        <div class="select-content">
+                            <div class="select-button">
+                                <select name="show_all_posts">
+                                    <option value="0"<?=$row['show_all_posts'] === 0 ? ' selected' : ''?>>Don't show</option>
+                                    <option value="1"<?=$row['show_all_posts'] === 1 ? ' selected' : ''?>>Do show</option>
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                    <li>
+                        <p class="settings-label">Who should be able to message you?</p>
+                        <div class="select-content">
+                            <div class="select-button">
+                                <select name="message_prefs">
+                                    <option value="0"<?=$row['message_prefs'] === 0 ? ' selected' : ''?>>People you follow only</option>
+                                    <option value="1"<?=$row['message_prefs'] === 1 ? ' selected' : ''?>>Everyone</option>
+                                    <option value="2"<?=$row['message_prefs'] === 2 ? ' selected' : ''?>>No one</option>
                                 </select>
                             </div>
                         </div>

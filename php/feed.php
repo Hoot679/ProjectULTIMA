@@ -1,6 +1,6 @@
 <?php
 $title = 'Home';
-$selected = 'community';
+$selected = 'feed';
 require_once('inc/header.php');
 if(empty($_GET['offset'])) {
     $_GET['offset'] = '0';
@@ -66,7 +66,7 @@ if($_GET['offset'] === '0') { ?>
         <div class="feeling-selector js-feeling-selector"><label class="symbol feeling-button feeling-button-normal checked"><input type="radio" name="feeling_id" value="0" checked><span class="symbol-label">normal</span></label><label class="symbol feeling-button feeling-button-happy"><input type="radio" name="feeling_id" value="1"><span class="symbol-label">happy</span></label><label class="symbol feeling-button feeling-button-like"><input type="radio" name="feeling_id" value="2"><span class="symbol-label">like</span></label><label class="symbol feeling-button feeling-button-surprised"><input type="radio" name="feeling_id" value="3"><span class="symbol-label">surprised</span></label><label class="symbol feeling-button feeling-button-frustrated"><input type="radio" name="feeling_id" value="4"><span class="symbol-label">frustrated</span></label><label class="symbol feeling-button feeling-button-puzzled"><input type="radio" name="feeling_id" value="5"><span class="symbol-label">puzzled</span></label></div>
         <div class="textarea-with-menu">
             <div class="textarea-container">
-                <textarea name="body" class="textarea-text textarea" maxlength="2000" placeholder="Share your thoughts in a post to Miiverse World." data-open-folded-form data-required></textarea>
+                <textarea name="body" class="textarea-text textarea" maxlength="2000" placeholder="Share your thoughts in a post to Project ULTIMA." data-open-folded-form data-required></textarea>
             </div>
         </div>
         <details class="select-from-album-button headline">
@@ -105,8 +105,21 @@ if($_GET['offset'] === '0') { ?>
     </form>
     <div class="body-content" id="community-post-list">
         <?php
+        $stmt = $db->prepare('SELECT show_all_posts FROM users WHERE id = ?');
+        $stmt->bind_param('i', $_SESSION['id']);
+        $stmt->execute();
+        if($stmt->error) {
+            showNoContent('An error occurred while trying to check if you have show all posts on.');
+        }
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        if($row['show_all_posts'] === 0) {
         $stmt = $db->prepare('SELECT posts.id, created_by, posts.created_at, community, name, icon, feeling, body, image, yt, sensitive_content, username, nickname, avatar, has_mh, level, (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0) AS empathy_count, (SELECT COUNT(*) FROM replies WHERE post = posts.id AND status = 0) AS reply_count, (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0 AND source = ?) AS empathy_added FROM posts LEFT JOIN users ON created_by = users.id LEFT JOIN communities ON communities.id = community WHERE ((created_by IN (SELECT target FROM follows WHERE source = ?) OR created_by = ?) OR (community IN (SELECT community FROM community_favorites WHERE user = ?))) AND IF(level < ? OR IF(community IS NULL, 0, (SELECT IFNULL(level, 0) FROM community_admins WHERE user = ? AND community = community LIMIT 1) < (SELECT IFNULL(level, 0) FROM community_admins WHERE user = created_by AND community = community LIMIT 1)), 1, created_by NOT IN (SELECT target FROM blocks WHERE source = ? UNION SELECT source FROM blocks WHERE target = ?)) AND posts.status = 0 AND (community IS NULL OR privacy = 0 OR (SELECT COUNT(*) FROM community_members WHERE user = ? AND community = communities.id AND status = 1) = 1) ORDER BY posts.id DESC LIMIT 20 OFFSET ?');
-        $stmt->bind_param('iiiiiiiiii', $_SESSION['id'], $_SESSION['id'], $_SESSION['id'], $_SESSION['id'], $_SESSION['level'], $_SESSION['id'], $_SESSION['id'], $_SESSION['id'], $_SESSION['id'], $_GET['offset']);
+            $stmt->bind_param('iiiiiiiiii', $_SESSION['id'], $_SESSION['id'], $_SESSION['id'], $_SESSION['id'], $_SESSION['level'], $_SESSION['id'], $_SESSION['id'], $_SESSION['id'], $_SESSION['id'], $_GET['offset']);
+        } else {
+        $stmt = $db->prepare('SELECT posts.id, created_by, posts.created_at, community, name, icon, feeling, body, image, yt, sensitive_content, username, nickname, avatar, has_mh, level, (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0) AS empathy_count, (SELECT COUNT(*) FROM replies WHERE post = posts.id AND status = 0) AS reply_count, (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0 AND source = ?) AS empathy_added FROM posts LEFT JOIN users ON created_by = users.id LEFT JOIN communities ON communities.id = community WHERE posts.status = 0 AND (community IS NULL OR privacy = 0 OR (SELECT COUNT(*) FROM community_members WHERE user = ? AND community = communities.id AND status = 1) = 1) ORDER BY posts.id DESC LIMIT 20 OFFSET ?');
+            $stmt->bind_param('iii', $_SESSION['id'], $_SESSION['id'], $_GET['offset']);
+        }
         $stmt->execute();
         if($stmt->error) {
             showNoContent('An error occurred while grabbing posts.');

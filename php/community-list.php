@@ -1,5 +1,6 @@
 <?php
 $title = 'Communities';
+$selected = 'community';
 if(empty($_SESSION['username'])) {
     $class = 'guest-top';
 } else {
@@ -10,8 +11,8 @@ if(empty($_SESSION['username'])) { ?>
     <div id="about">
         <div id="about-inner">
             <div id="about-text">
-                <h2 class="welcome-message">Welcome to Miiverse World!</h2>
-                <p>Miiverse World is a Miiverse clone experience that lets you discuss whatever you want with friends and community members alike. It adds lots of features like a customizable post feed, a discovery panel, and the best community creation and search systems of any clone!</p>
+                <h2 class="welcome-message">Welcome to Project ULTIMA!</h2>
+                <p>Project ULTIMA is a social media experience that lets you discuss whatever you want with friends and community members alike. It adds lots of features like a customizable post feed, themes, and the best community creation and search systems of any clone!</p>
                 <div class="guest-terms-content">
                     <a class="guest-terms-link symbol" href="/rules">Site Rules</a>
                 </div>
@@ -23,7 +24,7 @@ if(empty($_SESSION['username'])) { ?>
 <div class="body-content" id="community-top" data-region="USA">
     <div class="community-main">
         <?php
-        $stmt = $db->prepare('SELECT posts.id, posts.community, name, icon, owner_nickname, feeling, body, image, nickname, avatar, has_mh FROM posts LEFT JOIN users ON created_by = users.id INNER JOIN (SELECT community, name, icon, nickname AS owner_nickname FROM communities LEFT JOIN users ON users.id = owner LEFT JOIN posts ON communities.id = community AND posts.created_at > NOW() - INTERVAL 24 HOUR AND posts.status = 0 WHERE privacy = 0 AND communities.status = 0 GROUP BY communities.id ORDER BY COUNT(posts.id) DESC LIMIT 4) AS post_communities ON post_communities.community = posts.community WHERE posts.created_at > NOW() - INTERVAL 1 HOUR AND image IS NOT NULL AND sensitive_content = 0 AND posts.status = 0 AND IF(level < ? OR IF(posts.community IS NULL, 0, (SELECT IFNULL(level, 0) FROM community_admins WHERE user = ? AND community = posts.community LIMIT 1) < (SELECT IFNULL(level, 0) FROM community_admins WHERE user = created_by AND community = posts.community LIMIT 1)), 1, created_by NOT IN (SELECT target FROM blocks WHERE source = ? UNION SELECT source FROM blocks WHERE target = ?)) ORDER BY (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0) DESC, id DESC LIMIT 10');
+        $stmt = $db->prepare('SELECT posts.id, posts.community, name, icon, owner_nickname, feeling, body, image, nickname, avatar, has_mh FROM posts LEFT JOIN users ON created_by = users.id INNER JOIN (SELECT community, name, icon, nickname AS owner_nickname FROM communities LEFT JOIN users ON users.id = owner LEFT JOIN posts ON communities.id = community AND posts.created_at > NOW() - INTERVAL 1 HOUR AND posts.status = 0 WHERE privacy = 0 AND communities.status = 0 AND communities.verified > 0 GROUP BY communities.id ORDER BY COUNT(posts.id) DESC LIMIT 4) AS post_communities ON post_communities.community = posts.community WHERE posts.created_at > NOW() - INTERVAL 1 HOUR AND image IS NOT NULL AND sensitive_content = 0 AND posts.status = 0 AND IF(level < ? OR IF(posts.community IS NULL, 0, (SELECT IFNULL(level, 0) FROM community_admins WHERE user = ? AND community = posts.community LIMIT 1) < (SELECT IFNULL(level, 0) FROM community_admins WHERE user = created_by AND community = posts.community LIMIT 1)), 1, created_by NOT IN (SELECT target FROM blocks WHERE source = ? UNION SELECT source FROM blocks WHERE target = ?)) ORDER BY (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0) DESC, id DESC LIMIT 10');
         $stmt->bind_param('iiii', $_SESSION['level'], $_SESSION['id'], $_SESSION['id'], $_SESSION['id']);
         $stmt->execute();
         if(!$stmt->error) {
@@ -101,14 +102,14 @@ if(empty($_SESSION['username'])) { ?>
         <form method="GET" action="/search" class="search">
             <input type="text" name="query" placeholder="Search" maxlength="255"><input type="submit" value="q" title="Search">
         </form>
-        <div id="identified-user-banner">
+        <!-- <div id="identified-user-banner">
             <a href="/identified_user_posts" data-pjax="#body" class="list-button us">
                 <span class="title">Get the latest news here!</span>
                 <span class="text">Posts from Verified Users</span>
             </a>
-        </div>
+        </div> -->
         <?php
-        $stmt = $db->prepare('SELECT posts.id, created_by, posts.created_at, community, name, icon, feeling, body, image, yt, sensitive_content, username, nickname, avatar, has_mh, level, (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0) AS empathy_count, (SELECT COUNT(*) FROM replies WHERE post = posts.id AND status = 0) AS reply_count, (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0 AND source = ?) AS empathy_added FROM posts LEFT JOIN users ON created_by = users.id LEFT JOIN communities ON communities.id = community WHERE posts.created_at > NOW() - INTERVAL 1 HOUR AND image IS NULL AND sensitive_content = 0 AND posts.status = 0 AND IF(level < ? OR IF(community IS NULL, 0, (SELECT IFNULL(level, 0) FROM community_admins WHERE user = ? AND community = community LIMIT 1) < (SELECT IFNULL(level, 0) FROM community_admins WHERE user = created_by AND community = community LIMIT 1)), 1, created_by NOT IN (SELECT target FROM blocks WHERE source = ? UNION SELECT source FROM blocks WHERE target = ?)) ORDER BY (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0) DESC, id DESC LIMIT 10');
+        $stmt = $db->prepare('SELECT posts.id, created_by, posts.created_at, community, name, icon, feeling, body, image, yt, sensitive_content, username, nickname, avatar, has_mh, level, (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0) AS empathy_count, (SELECT COUNT(*) FROM replies WHERE post = posts.id AND status = 0) AS reply_count, (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0 AND source = ?) AS empathy_added FROM posts LEFT JOIN users ON created_by = users.id LEFT JOIN communities ON communities.id = community WHERE posts.created_at > NOW() - INTERVAL 1 HOUR AND image IS NULL AND sensitive_content = 0 AND posts.status = 0 AND communities.verified > 0 AND IF(level < ? OR IF(community IS NULL, 0, (SELECT IFNULL(level, 0) FROM community_admins WHERE user = ? AND community = community LIMIT 1) < (SELECT IFNULL(level, 0) FROM community_admins WHERE user = created_by AND community = community LIMIT 1)), 1, created_by NOT IN (SELECT target FROM blocks WHERE source = ? UNION SELECT source FROM blocks WHERE target = ?)) ORDER BY (SELECT COUNT(*) FROM empathies WHERE target = posts.id AND type = 0) DESC, id DESC LIMIT 10');
         $stmt->bind_param('iiiii', $_SESSION['id'], $_SESSION['level'], $_SESSION['id'], $_SESSION['id'], $_SESSION['id']);
         $stmt->execute();
         if(!$stmt->error) {
@@ -125,9 +126,9 @@ if(empty($_SESSION['username'])) { ?>
     </div>
     <div class="community-main">
         <?php
-        $result = $db->query('SELECT communities.id, name, icon, banner, nickname FROM communities LEFT JOIN users ON users.id = owner LEFT JOIN posts ON communities.id = community AND posts.created_at > NOW() - INTERVAL 24 HOUR AND posts.status = 0 WHERE privacy = 0 AND communities.status = 0 GROUP BY communities.id ORDER BY COUNT(posts.id) DESC LIMIT 4');
+        $result = $db->query('SELECT communities.id, name, icon, banner, nickname FROM communities LEFT JOIN users ON users.id = owner LEFT JOIN posts ON communities.id = community AND posts.created_at > NOW() - INTERVAL 24 HOUR AND posts.status = 0 WHERE privacy = 0 AND communities.status = 0 AND verified > 0 GROUP BY communities.id ORDER BY COUNT(posts.id) DESC LIMIT 4');
         if(!$db->error && $result->num_rows > 0) { ?>
-            <h3 class="community-title symbol">Popular Communities</h3>
+            <h3 class="community-title symbol">Popular Communities (Verified)</h3>
             <div>
                 <ul class="list community-list community-card-list">
                     <?php while($row = $result->fetch_assoc()) { ?>
@@ -145,9 +146,9 @@ if(empty($_SESSION['username'])) { ?>
                 </ul>
             </div>
         <?php }
-        $result = $db->query('SELECT communities.id, name, icon, nickname FROM communities LEFT JOIN users ON users.id = owner WHERE privacy = 0 AND communities.status = 0 ORDER BY communities.id DESC LIMIT 6');
+        $result = $db->query('SELECT communities.id, name, icon, nickname FROM communities LEFT JOIN users ON users.id = owner WHERE privacy = 0 AND verified > 0 AND communities.status = 0 ORDER BY communities.id DESC LIMIT 6');
         if(!$db->error && $result->num_rows > 0) { ?>
-            <h3 class="community-title symbol">New Communities</h3>
+            <h3 class="community-title symbol">New Communities (Verified)</h3>
             <div>
                 <ul class="list community-list community-card-list device-new-community-list">
                     <?php while($row = $result->fetch_assoc()) { ?>

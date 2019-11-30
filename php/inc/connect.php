@@ -162,7 +162,7 @@ function getTimestamp($datetime) {
 }
 function initUser($username, $is_general = false) {
     global $db;
-    $stmt = $db->prepare('SELECT id, username, nickname, avatar, has_mh, nnid, level, organization, profile_comment, favorite_post, created_at, last_seen, (SELECT image FROM posts WHERE id = favorite_post) AS favorite_post_image, (SELECT IF(COUNT(*) = 0, 0, 1) FROM follows WHERE source = ? AND target = users.id) AS is_following, (SELECT COUNT(*) FROM follows WHERE source = users.id) AS following_count, (SELECT COUNT(*) FROM follows WHERE target = users.id) AS follower_count, (SELECT COUNT(*) FROM posts WHERE created_by = users.id) AS post_count, (SELECT COUNT(*) FROM empathies WHERE source = users.id) AS empathy_count FROM users WHERE username = ?');
+    $stmt = $db->prepare('SELECT id, username, nickname, avatar, has_mh, nnid, level, organization, profile_comment, favorite_post, message_prefs, created_at, last_seen, (SELECT image FROM posts WHERE id = favorite_post) AS favorite_post_image, (SELECT IF(COUNT(*) = 0, 0, 1) FROM follows WHERE source = ? AND target = users.id) AS is_following, (SELECT COUNT(*) FROM follows WHERE source = users.id) AS following_count, (SELECT COUNT(*) FROM follows WHERE target = users.id) AS follower_count, (SELECT COUNT(*) FROM posts WHERE created_by = users.id) AS post_count, (SELECT COUNT(*) FROM empathies WHERE source = users.id) AS empathy_count FROM users WHERE username = ?');
     if(!$stmt) {
         showError(500, 'There was an error while preparing to grab that user.');
     }
@@ -212,6 +212,14 @@ function initUser($username, $is_general = false) {
             exit();
         }
         $title = $row['nickname'] . '\'s Profile';
+        $stmt = $db->prepare('SELECT id, color, background, background_url FROM themes WHERE source = ? AND show_on_profile = 1');
+        $stmt->bind_param('i', $row['id']);
+        $stmt->execute();
+        if($stmt->error) {
+            showError(500, 1203654, 'An error occurred while grabbing this user\'s theme settings from the database.');
+        }
+        $resulttu = $stmt->get_result();
+        $rowtu = $resulttu->fetch_assoc();
     }
     global $class;
     require_once('inc/header.php');
@@ -225,7 +233,7 @@ function requireAuth() {
         require_once('inc/header.php');
         ?><div class="warning-content warning-content-forward">
             <div>
-                <strong>Welcome to Miiverse World!</strong>
+                <strong>Welcome to Project ULTIMA!</strong>
                 <p>You must sign in to view this page.</p>
                 <a class="button" href="/login">Sign In</a>
             </div>
@@ -301,6 +309,8 @@ function sendNotification($target, $type, $origin = null) {
     return true;
 }
 function showError($responseCode, $message) {
+    global $db;
+    
     http_response_code($responseCode);
     $title = 'Error';
     require_once('inc/header.php');

@@ -2,7 +2,6 @@
 require_once('inc/connect.php');
 requireAuth();
 $title = 'Discover';
-$selected = 'feed';
 require_once('inc/header.php');
 ?>
 <div id="sidebar">

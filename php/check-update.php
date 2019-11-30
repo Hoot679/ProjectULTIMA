@@ -27,6 +27,26 @@ if(!empty($_GET['news']) && $_GET['news'] === '{}') {
     $row = $result->fetch_array();
     $notifications['news'] = ['unread_count' => $row['COUNT(*)']];
 }
+/*if(!empty($_GET['messages']) && $_GET['messages'] === '{}') {
+    $stmt = $db->prepare('SELECT id, COUNT(*) FROM conversations WHERE (source = ? OR target = ?) AND id IN (SELECT conversation FROM messages WHERE seen = 0 AND conversation = conversations.id AND created_by != ?)');
+    if(!$stmt) {
+        http_response_code(500);
+        $notifications['success'] = 0;
+        $notifications['errors'] = ['There was an error while preparing to fetch the notification count.'];
+        exit(json_encode($notifications));
+    }
+    $stmt->bind_param('iii', $_SESSION['id'], $_SESSION['id'], $_SESSION['id']);
+    $stmt->execute();
+    if($stmt->error) {
+        http_response_code(500);
+        $notifications['success'] = 0;
+        $notifications['errors'] = ['There was an error while fetching the notification count.'];
+        exit(json_encode($notifications));
+    }
+    $result = $stmt->get_result();
+    $row = $result->fetch_array();
+    $notifications['message'] = ['unread_count' => $row['COUNT(*)']];
+}*/
 if(!empty($_GET['admin_message']) && $_GET['admin_message'] === '{}') {
     $notifications['admin_message'] = ['unread_count' => 0];
 }

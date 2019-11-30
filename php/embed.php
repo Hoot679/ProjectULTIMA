@@ -13,7 +13,7 @@ $result = $stmt->get_result();
     </head>
     <body>
         <div id="post-content">
-            <a href="/" target="_blank"><img id="service-logo" src="/assets/img/menu-logo.png" alt="Miiverse World" width="165" height="30"></a>
+            <a href="/" target="_blank"><img id="service-logo" src="/assets/img/Ultima.png" alt="Project ULTIMA" width="165" height="30"></a>
             <?php
             if($result->num_rows === 0) {
                 showNoContent('The post could not be found.');

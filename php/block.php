@@ -25,6 +25,19 @@ if($result->num_rows === 0) {
 }
 $row = $result->fetch_array();
 
+if($_GET['type'] !== 'delete') {
+    $stmt = $db->prepare('SELECT id FROM users WHERE username = ? AND level = 0 AND id != ?');
+    $stmt->bind_param('si', $_GET['username'], $_SESSION['id']);
+    $stmt->execute();
+    if($stmt->error) {
+        showJSONError(500, 1234568, 'An error occured while checking if the user is an admin.');
+    }
+    $result = $stmt->get_result();
+    if($result->num_rows === 0) {
+        showJSONError(404, 5040404, 'You can\'t block admins.');
+    }
+}
+
 if($_GET['type'] === 'delete') {
     $stmt = $db->prepare('DELETE FROM blocks WHERE source = ? AND target = ?');
 } else {

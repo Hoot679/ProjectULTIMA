@@ -53,9 +53,30 @@
                     </div>
                     <div class="report-buttons-content">
                         <button type="button" class="report-button" data-modal-open="#report-violator-page" data-can-report-spoiler="1">Report Violation</button>
-                        <button type="button" class="report-button" data-modal-open="#block-page">Block</button>
+                        <?php if($row['level'] == 0) { ?> <button type="button" class="report-button" data-modal-open="#block-page">Block</button> <?php } ?>
                         <?php if($_SESSION['level'] > $row['level']) { ?>
                             <button type="button" class="report-button" data-modal-open="#manage-page">Manage</button>
+                        <?php } ?>
+                        <?php 
+                        if($row['message_prefs'] === 2) {
+                            $messagable = false;
+                        } elseif($row['message_prefs'] === 1) {
+                            $messagable = true;
+                        } elseif($row['message_prefs'] === 0) {
+                            $stmt = $db->prepare("SELECT COUNT(*) FROM follows WHERE source = ? AND target = ?");
+                            $stmt->bind_param('ii', $row['id'], $_SESSION['id']);
+                            $stmt->execute();
+                            $cr = $stmt->get_result();
+                            $crow = $cr->fetch_assoc();
+                            if($crow['COUNT(*)'] === 0) {
+                                $messagable = false;
+                            } else {
+                                $messagable = true;
+                            }
+                        }
+
+                        if($messagable) { ?>
+                            <a href="/messages/<?=$row['username']?>" class="report-button">Message</a>
                         <?php } ?>
                     </div>
                 </div>
@@ -66,7 +87,7 @@
                             <div class="window-body">
                                 <form method="post" action="/users/<?=htmlspecialchars(urlencode($row['username']))?>/violators">
                                     <input type="hidden" name="token" value="<?=$_SESSION['token']?>">
-                                    <p class="description">You are about to report a user for violating the Miiverse World Rules. This report will be sent to the Miiverse World administrators and not to the user you are reporting or any community staff.</p>
+                                    <p class="description">You are about to report a user for violating the Project ULTIMA Rules. This report will be sent to the Project ULTIMA administrators and not to the user you are reporting or any community staff.</p>
                                     <select name="type" class="can-report-spoiler none">
                                         <option value="1" selected data-body-required="1"></option>
                                     </select>
@@ -88,7 +109,7 @@
                             <div class="window-body">
                                 <form method="post" action="/users/<?=htmlspecialchars(urlencode($row['username']))?>/blacklist.create.json">
                                     <input type="hidden" name="token" value="<?=$_SESSION['token']?>">
-                                    <p class="window-body-content">Are you sure you want to block this user? You won't be able to view each other's posts, comments, or profiles until you unblock them.</p>
+                                    <p class="window-body-content">Are you sure you want to block this user? You won't be able to view each other's posts, comments, or profiles, you also can't message them until you unblock them.</p>
                                     <div class="form-buttons">
                                         <input type="button" class="olv-modal-close-button gray-button" value="Cancel">
                                         <input type="submit" class="post-button black-button" value="Block">
@@ -233,7 +254,7 @@
                 <li><a href="/settings/account" class="sidebar-menu-setting symbol"><span>Account Settings</span></a></li>
                 <li><a href="/my_blacklist" class="sidebar-menu-relation symbol"><span>Blocked Users</span></a></li>
                 <li><a href="/rules" class="sidebar-menu-post symbol"><span>Site Rules</span></a></li>
-                <li><a href="https://pf2m.com/contact/" class="sidebar-menu-guide symbol"><span>Contact Us</span></a></li>
+                <li><a href="/contact" class="sidebar-menu-guide symbol"><span>Contact Us</span></a></li>
             </ul>
         </div>
     <?php } else { ?>
@@ -308,6 +329,23 @@
                     <h4><span>Joined</span></h4>
                     <div class="note"><?=getTimestamp($row['created_at'])?></div>
                 </div>
+                <?php 
+                /* if(!empty($row['bm_session'])) {
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, BOOT_MEDIA_LINK.'api/users/'.$row['bm_session'].'/info.json');
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    $result = curl_exec($ch);
+                    curl_close($ch);
+                    $data = json_decode($result, true);
+
+                    if($data["success"] !== 0) { ?>
+                    <div class="data-content">
+                        <h4><span>Boot_Media Profile</span></h4>
+                        <div class="note"><a href="<?=BOOT_MEDIA_LINK?>users/<?=$data["user"]["user_name"]?>"><?=$data["user"]["user_name"]?></a></div>
+                    </div>
+                    <?php }
+                    } */
+                    ?>
                 <div class="data-content">
                     <h4><span>Last Seen</span></h4>
                     <div class="note"><?=getTimestamp($row['last_seen'])?></div>
