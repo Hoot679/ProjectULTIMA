@@ -18,7 +18,7 @@ $row = initUser($_SESSION['username'], true);
       		} else {
       			$result = $stmt->get_result();
       			if($result->num_rows === 0) {
-      				echo '<div class="no-content"><p>No conversations.</p></div>';
+      				echo '<div class="no-content"><p>No conversations yet.</p></div>';
       			} else {
       				while($row = $result->fetch_assoc()) {
       					if($row['target'] == $_SESSION['id']) {
@@ -45,7 +45,7 @@ $row = initUser($_SESSION['username'], true);
                         if($urow['level'] > 0) {
                             echo ' official-user';
                         }
-                        echo '"><img class="icon" src="'.getAvatar($urow['avatar'], $urow['has_mh']).'"></a><div class="body"><a href="/users/' . htmlspecialchars($urow['username']) . '" class="nick-name">' . htmlspecialchars($urow['nickname']) . '</a>'.($mresult->num_rows !== 0 ? '<p>'.htmlspecialchars($mrow['body']).'</p>' : '');
+                        echo '"><img class="icon" src="'.getAvatar($urow['avatar'], $urow['has_mh']).'"></a><div class="body"><a href="/users/' . htmlspecialchars($urow['username']) . '" class="nick-name">' . htmlspecialchars($urow['nickname']) . '</a>'.($mresult->num_rows !== 0 ? '<p>'.htmlspecialchars($mrow['body']).'</p>' : '<p>You have not exchanged messages with this user yet.</p>');
                         if($mresult->num_rows !== 0) {
                           echo '<span class="timestamp">' . getTimestamp($mrow['created_at']) . '</span>';
                         }

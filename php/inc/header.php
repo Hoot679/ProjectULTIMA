@@ -231,8 +231,8 @@ require_once('connect.php');
                                     $stmt->execute();
                                     $mcres = $stmt->get_result();
                                     $mcrow = $mcres->fetch_array();
-                                    if($mcrow['COUNT(*)'] > 0 && $selected != 'message') { ?>
-                                        <span class="badge"><?=$mcrow['COUNT(*)']?></span>
+                                    if($mcrow['COUNT(*)'] > 0 && (!isset($selected) || $selected != 'message')) { ?>
+                                        <span class="badge" style="display: block;"><?=$mcrow['COUNT(*)']?></span>
                                     <?php }
                                 ?>
                                 </a>
