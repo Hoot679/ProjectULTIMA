@@ -169,7 +169,7 @@ if(empty($_SESSION['username'])) { ?>
         ?>
         <div id="community-guide-footer">
             <div id="guide-menu">
-                <a href="https://github.com/PF2M/MiiverseWorld" class="arrow-button"><span>GitHub</span></a>
+                <a href="https://github.com/SRGNation/ProjectULTIMA" class="arrow-button"><span>GitHub</span></a>
                 <a href="/rules" class="arrow-button"><span>Site Rules</span></a>
                 <a href="https://pf2m.com/contact/" class="arrow-button"><span>Contact Us</span></a>
             </div>
