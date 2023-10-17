@@ -114,7 +114,7 @@ require_once('inc/header.php');
     <form method="post">
         <input type="hidden" name="token" value="<?=$_SESSION['token']?>"><br>
         <img src="/assets/img/menu-logo.png">
-        <p>Sign in with a Miiverse World account to make posts and interact with other users.</p>
+        <p>Sign in with a Project Ultima account to make posts and interact with other users.</p>
         <?php if(!empty($error)) { ?><p class="post-tag post-topic-category symbol"><?=htmlspecialchars($error)?></p><?php } ?><br>
         <input type="text" name="username" placeholder="Username" required maxlength="32">
         <br>
