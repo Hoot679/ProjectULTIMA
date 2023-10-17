@@ -21,16 +21,18 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if(!empty($value) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
                         showJSONError(400, 1211337, 'Your email is invalid.');
                     }
-                    $stmt = $db->prepare('SELECT COUNT(*) FROM users WHERE email = ? AND status = 0');
-                    $stmt->bind_param('s', $value);
-                    $stmt->execute();
-                    if($stmt->error) {
-                        showJSONError(500, 1231029, 'An error occurred while checking for users with that email.');
-                    }
-                    $result = $stmt->get_result();
-                    $row = $result->fetch_assoc();
-                    if($row['COUNT(*)'] > 0) {
-                        showJSONError(400, 1290302, 'An account already exists with that email.');
+                    if(!empty($value)){
+                        $stmt = $db->prepare('SELECT COUNT(*) FROM users WHERE email = ? AND status = 0');
+                        $stmt->bind_param('s', $value);
+                        $stmt->execute();
+                        if($stmt->error) {
+                            showJSONError(500, 1231029, 'An error occurred while checking for users with that email.');
+                        }
+                        $result = $stmt->get_result();
+                        $row = $result->fetch_assoc();
+                        if($row['COUNT(*)'] > 0) {
+                            showJSONError(400, 1290302, 'An account already exists with that email.');
+                        }
                     }
                     break;
                 case 'yeah_notifications':
