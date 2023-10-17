@@ -37,11 +37,19 @@ if($row['privacy'] !== 0) {
         showJSONError(403, 4030304, 'You don\'t have permission to favorite that community.');
     }
 }
-
+$stmt = $db->prepare("SELECT COUNT(*) FROM community_favorites WHERE user = ? AND community = ?");
+$stmt->bind_param('ii', $_SESSION['id'], $_GET['id']);
+$stmt->execute();
+$res = $stmt->get_result();
+$row = $res->fetch_assoc();
 if($_GET['un'] === 'un') {
     $stmt = $db->prepare('DELETE FROM community_favorites WHERE user = ? AND community = ?');
 } else {
-    $stmt = $db->prepare('REPLACE INTO community_favorites (user, community) VALUES (?, ?)');
+    if($row["COUNT(*)"] == 0){
+        $stmt = $db->prepare('INSERT INTO community_favorites (user, community) VALUES (?, ?)');
+    } else {
+        showJSONError(403, 4030304, 'You\'ve already favorited that community.');
+    }
 }
 $stmt->bind_param('ii', $_SESSION['id'], $_GET['id']);
 $stmt->execute();
