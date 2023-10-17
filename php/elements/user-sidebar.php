@@ -47,10 +47,16 @@
                 </div>
             <?php } else { ?>
                 <div class="user-action-content">
+                    <?php if(!empty($_SESSION["username"])){ ?>
                     <div class="toggle-button">
                         <button type="button" data-action="/users/<?=htmlspecialchars($row['username'])?>.follow.json" class="follow-button button symbol<?=$row['is_following'] === 1 ? ' none' : ''?>">Follow</button>
                         <button type="button" data-action="/users/<?=htmlspecialchars($row['username'])?>.unfollow.json" class="unfollow-button button symbol<?=$row['is_following'] === 0 ? ' none' : ''?>" data-screen-name="<?=$row['nickname']?>">Follow</button>
                     </div>
+                    <?php } else { ?>
+                    <div class="toggle-button">
+                        <a class="follow-button button symbol" href="/login">Follow</a>
+                    </div>
+                    <?php } ?>
                     <div class="report-buttons-content">
                         <button type="button" class="report-button" data-modal-open="#report-violator-page" data-can-report-spoiler="1">Report Violation</button>
                         <?php if($row['level'] == 0) { ?> <button type="button" class="report-button" data-modal-open="#block-page">Block</button> <?php } ?>
