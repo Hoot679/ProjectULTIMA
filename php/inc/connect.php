@@ -414,6 +414,17 @@ if(HTTPS_PROXY) {
     $ip = $_SERVER['REMOTE_ADDR'];
 }
 if(!empty($_SESSION['username'])) {
+    $stmt = $db->prepare("SELECT COUNT(*) FROM users WHERE id = ?");
+    $stmt->bind_param("i", $_SESSION["id"]);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $drow = $res->fetch_assoc();
+    if($drow["COUNT(*)"] == 0){
+        session_destroy();
+        http_status_code(307);
+        header("Location: /");
+        exit();
+    }
     $stmt = $db->prepare('UPDATE users SET last_seen = NOW(), ip = ? WHERE id = ?');
     $stmt->bind_param('si', $ip, $_SESSION['id']);
     $stmt->execute();
