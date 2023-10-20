@@ -73,6 +73,17 @@ if($conversations === 0) {
 	$result = $stmt->get_result();
 	$row = $result->fetch_assoc();
 }
+$stmt = $db->prepare("UPDATE messages SET seen = 1 WHERE conversation = ? AND created_by != ?");
+$stmt->bind_param('ii', $row['id'], $_SESSION['id']);
+if($stmt->error) {
+   	showError(500, 'An error occurred while trying to update message as read.');
+}
+$stmt->execute();
+
+if($urow['message_prefs'] === 0 && !$can_message && $row['source'] !== $_SESSION['id'])
+{
+    $can_message = true;
+}
 
 $title = 'Message '.htmlspecialchars($urow['nickname']);
 $selected = 'message';
@@ -81,7 +92,7 @@ $urow2 = initUser($_SESSION['username'], true);
 ?><div class="main-column messages">
     <div class="post-list-outline">
         <h2 class="label">Conversation with <?=htmlspecialchars($urow['nickname'])?></h2>
-        <?php //if($can_message == true) { ?>
+        <?php if($can_message == true) { ?>
         <form id="post-form" method="post" action="/messages" class="for-identified-user folded" data-post-subtype="default">
             <input type="hidden" name="token" value="<?=$_SESSION['token']?>">
             <input type="hidden" name="conversation" value="<?=$row['id']?>">
@@ -101,7 +112,7 @@ $urow2 = initUser($_SESSION['username'], true);
             <div class="form-buttons">
                 <input type="submit" class="black-button post-button disabled" value="Send" data-post-content-type="text" data-post-with-screenshot="nodata" disabled>
             </div>
-        </form> <?php //} ?>
+        </form> <?php } ?>
         <div class="body-content" id="community-post-list">
             <?php 
             if(empty($_GET['offset'])) {
