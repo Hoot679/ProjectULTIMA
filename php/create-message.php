@@ -52,21 +52,26 @@ if(empty($_POST['conversation'])) {
         showJSONError(500, 5820094, 'There was an error while grabbing the other user\'s message preferences.');
     }
     $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
+    $mrow = $result->fetch_assoc();
 
-    /*if($row['message_prefs'] === 2) {
+    if($mrow['message_prefs'] === 2) {
         showJSONError(403, 4203091, 'You don\'t have the permission to message this user.');
-    } elseif($row['message_prefs'] === 0) {
+    } elseif($mrow['message_prefs'] === 0) {
         $stmt = $db->prepare("SELECT COUNT(*) FROM follows WHERE source = ? AND target = ?");
         $stmt->bind_param('ii', $other, $_SESSION['id']);
         $stmt->execute();
         $cr = $stmt->get_result();
         $crow = $cr->fetch_assoc();
-        if($crow['COUNT(*)'] === 0) {
-            showJSONError(403, 4203091, 'You don\'t have the permission to message this user.');
+        if($mrow['message_prefs'] === 0 && $crow['COUNT(*)'] === 0 && $row['source'] !== $_SESSION['id'])
+        {
+            goto skip;
         }
-    }*/
+        if($crow['COUNT(*)'] === 0) {
+            showJSONError(403, 4203098, 'You don\'t have the permission to message this user.');
+        }
+    }
 }
+skip:
 if(empty($_POST['feeling_id']) || $_POST['feeling_id'] > 5 || $_POST['feeling_id'] < 0) {
     $_POST['feeling_id'] = 0;
 }
