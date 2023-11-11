@@ -2,6 +2,7 @@
 $title = 'Home';
 $selected = 'feed';
 require_once('inc/header.php');
+requireAuth();
 if(empty($_GET['offset'])) {
     $_GET['offset'] = '0';
 }
